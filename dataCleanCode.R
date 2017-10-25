@@ -3,6 +3,7 @@ library(tidyr)
 library(scales)
 library(ggrepel)
 library(forcats)
+library(ggthemes)
 
 #cleaning scrape data!
 stockx= read.csv("stockxScrapedData.csv", header = TRUE, stringsAsFactors = FALSE)
@@ -135,82 +136,91 @@ percentSales = as.numeric(totalSales_grouped$totals2)/sum(as.numeric(totalSales_
 g= ggplot(data= totalSales_grouped, aes(x= "", y = percentSales, fill= model)) + 
   geom_bar(stat="identity", width=1) + 
   coord_polar("y", start=0) +
+  ggtitle("Percentage of Total Resold Sneakers By Model")+
   geom_label_repel(aes(label = paste0(as.character(round(percentSales*100, digits=1)), "%")), size=5, show.legend = F, nudge_x = 1) +
-  guides(fill = guide_legend(title = "model"))
+  guides(fill = guide_legend(title = "model"))+
+  theme(plot.title = element_text(hjust = 0.5))
 g
 
 #EDA- Top 10 selling style- units sold
-g2= ggplot(data= top10units, aes(x= reorder(name,-as.numeric(totals)), y = as.numeric(totals))) + geom_bar(stat="identity", aes(fill=name))
+g2= ggplot(data= top10units, aes(x= reorder(name,-as.numeric(totals)), y = as.numeric(totals))) + 
+  geom_bar(stat="identity", aes(fill=name))+
+  ggtitle("Top 10 Styles By Units Sold") +
+  xlab("Models")+
+  ylab("Units Sold")+
+  theme(axis.text.x =element_text(angle=53, hjust=1), plot.title = element_text(hjust = 0.5), legend.position="none")
 g2
 
 #EDA- Top 10 selling style- resellPercentage
 g3= ggplot(data= top10resellPercent, aes(x= reorder(name,-as.numeric(avgResellPercentage)), y = as.numeric(avgResellPercentage))) + geom_bar(stat="identity", aes(fill=name))
 g3
 
-
-
 #BREAKOUT OF SIZE!
 grouped_size = stockxjoin %>% group_by(size) %>% summarise(totals = n(), avgResellPrice = mean(resellPrice), avgResellPercent = mean(resellPercentage))
 grouped_size$size = as.factor(grouped_size$size)
-prac= grouped_size %>% summarise(totals=sum(totals))
-
-
 #all yeezy's by size vs units sold
-g4= ggplot(data= grouped_size, aes(x= size, y = totals/sum(totals))) + geom_bar(stat="identity", aes(fill=size))
+g4= ggplot(data= grouped_size, aes(x= size, y = totals)) + geom_bar(stat="identity", fill="blue")+
+  ggtitle("Units Sold By Size") +
+  xlab("Shoe Size")+
+  ylab("Units Sold")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g4
 # all yeezy's by size vs resell price
-g5= ggplot(data= grouped_size, aes(x= size, y = avgResellPrice)) + geom_bar(stat="identity", aes(fill=size))
+g5= ggplot(data= grouped_size, aes(x= size, y = avgResellPrice)) + geom_bar(stat="identity", fill="red")+
+  ggtitle("Average Resell Price By Size") +
+  xlab("Shoe Size")+
+  ylab("Average Resell Price($)")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g5
-# all yeezy's by size vs resell percentage
-g6= ggplot(data= grouped_size, aes(x= size, y = avgResellPercent)) + geom_bar(stat="identity", aes(fill=size))
-g6
 
 ###grouping by size and model!
 grouped_size_model = stockxjoin %>% filter(resellPrice!="5109")%>% group_by(size, model) %>% filter(model %in% c("350 V1","350 V2", "750", "Powerphase")) %>% summarise(totals = n(), avgResellPrice = mean(resellPrice), avgResellPercent = mean(resellPercentage))
 grouped_size_model$size = as.factor(grouped_size_model$size)
 #model- size vs units sold 
-g7= ggplot(data= grouped_size_model, aes(x= size, y = totals/sum(totals))) + geom_bar(stat="identity", aes(fill=size))+ facet_grid(model~.)
+g7= ggplot(data= grouped_size_model, aes(x= size, y = totals)) + geom_bar(stat="identity", aes(fill=model))+ facet_grid(model~.)+
+  ggtitle("Sizes Sold By Model") +
+  xlab("Shoe Size")+
+  ylab("Units Sold")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g7
 #model- size vs resell price 
-g8= ggplot(data= grouped_size_model, aes(x= size, y = avgResellPrice)) + geom_bar(stat="identity", aes(fill=size))+ facet_grid(model~.)
+g8= ggplot(data= grouped_size_model, aes(x= size, y = avgResellPrice)) + geom_bar(stat="identity", aes(fill=model))+ facet_grid(model~.)+
+  ggtitle("Resell Price By Size By Model") +
+  xlab("Shoe Size")+
+  ylab("Average Resell Price ($)")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g8
-
-#model- size vs resell percentage 
-g9= ggplot(data= grouped_size_model, aes(x= size, y = avgResellPercent)) + geom_bar(stat="identity", aes(fill=size))+ facet_grid(model~.)
-g9
 
 #######BY DAY#######
 grouped_day = stockxjoin %>%  group_by(day) %>% filter(model %in% c("350 V1","350 V2", "750", "Powerphase")) %>% summarise(totals = n(), avgResellPrice = mean(resellPrice), avgResellPercent = mean(resellPercentage))
 
 #model- size vs units sold 
-g10= ggplot(data= grouped_day, aes(x= day, y = totals/sum(totals))) + geom_bar(stat="identity", aes(fill=day))
+g10= ggplot(data= grouped_day, aes(x= day, y = totals/sum(totals))) + geom_bar(stat="identity", fill="orange") +
+  ggtitle("Percentage of Units Sold By Day of Week ") +
+  xlab("Day of the Week")+
+  ylab("Units Sold (%)")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g10
 #model- size vs resell price 
-g11= ggplot(data= grouped_day, aes(x= day, y = avgResellPrice)) + geom_bar(stat="identity", aes(fill=day))
+g11= ggplot(data= grouped_day, aes(x= day, y = avgResellPrice)) + geom_bar(stat="identity", fill="purple")+
+ ggtitle("Average Resell Price By Day of Week ") +
+  xlab("Day of the Week")+
+  ylab("Avg. Resell Price ($)")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g11
-
-#model- size vs resell percentage 
-g12= ggplot(data= grouped_day, aes(x= day, y = avgResellPercent)) + geom_bar(stat="identity", aes(fill=day))
-g12
 
 #######BY COLOR#######
 grouped_color = stockxjoin %>%  group_by(color) %>% filter(model %in% c("350 V1","350 V2", "750", "Powerphase")) %>% summarise(totals = n(), avgResellPrice = mean(resellPrice), avgResellPercent = mean(resellPercentage))
 
-#model- size vs units sold 
-g13= ggplot(data= grouped_color, aes(x= color, y = totals/sum(totals))) + geom_bar(stat="identity", aes(fill=color))
-g13
 #model- size vs resell price 
-g14= ggplot(data= grouped_color, aes(x= color, y = avgResellPrice)) + geom_bar(stat="identity", aes(fill=color))
+g14= ggplot(data= grouped_color, aes(x= color, y = avgResellPrice)) + geom_bar(stat="identity", fill=c("black", "#704901", "gray", "red", "beige", "white"), color = "black")+
+  ggtitle("Average Resell Price By Color") +
+  xlab("Color") +
+  ylab("Avg. Resell Price ($)")+
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none")
 g14
 
-#model- size vs resell percentage 
-g15= ggplot(data= grouped_color, aes(x= color, y = avgResellPercent)) + geom_bar(stat="identity", aes(fill=color))
-g15
-
-
-#G6 G9 G12 G15 not really necessary as avg resellPercent and avg resellPrice are slightly repetitive
-
-######TIME??
+######TIME############
 totalYeezy = stockxjoin %>% group_by(sellMonth) %>% summarise(avg =mean(resellPrice))
 totalYeezy$sellMonth =  tolower(totalYeezy$sellMonth)
 totalYeezy$sellMonth = factor(totalYeezy$sellMonth, 
@@ -219,11 +229,13 @@ totalYeezy$sellMonth = factor(totalYeezy$sellMonth,
                                          "jan 2017", "feb 2017", "mar 2017", "apr 2017", "may 2017", "jun 2017", "jul 2017", "aug 2017", "sep 2017", "oct 2017", "nov 2017", "dec 2017"
                                         ))
 
-
-
 #all yeezys over month of selling
 g16= ggplot(data=totalYeezy, aes(x=sellMonth, y=avg, group =1)) +
-  geom_line() + geom_point()
+  geom_line() + geom_point()+
+  ggtitle("Resell Price Over Time") +
+  xlab("Date By Month")+
+  ylab("Average Resell Price($)")+
+  theme(axis.text.x =element_text(angle=45, hjust=1), plot.title = element_text(hjust = 0.5), legend.position="none")
 g16
 
 #track top 10 models(by resell percentage)
@@ -236,112 +248,22 @@ top10resellPercentbyMonth$sellMonth = factor(top10resellPercentbyMonth$sellMonth
                                                         "jan 2017", "feb 2017", "mar 2017", "apr 2017", "may 2017", "jun 2017", "jul 2017", "aug 2017", "sep 2017", "oct 2017", "nov 2017", "dec 2017"
                                              ))
 
-
 #all together one one map
 g17= ggplot(data=top10resellPercentbyMonth, aes(x=sellMonth, y=avgResellPercentage, group = name, color = name)) +
-  geom_line() + geom_point()
-
+  geom_line() + geom_point()+
+  ggtitle("Resell Price Over Time By Style") +
+  xlab("Date By Month")+
+  ylab("Average Resell Price($)")+
+  theme(axis.text.x =element_text(angle=45, hjust=1), plot.title = element_text(hjust = 0.5))
 g17
 
-#facet_wrap
-g18= ggplot(data=top10resellPercentbyMonth, aes(x=sellMonth, y=avgResellPercentage, group = name, color = name)) +
-  geom_line() + geom_point() + facet_wrap(~name)
-g18
-
-##########resellPercentage by model 
-top10resellPercentbyModel =  stockxjoin %>% group_by(model, sellMonth) %>% summarise(avgResellPercentage= mean(resellPercentage)) %>% filter(model %in% c("350 V1","350 V2", "750", "Powerphase")) %>% arrange(desc(avgResellPercentage))
-top10resellPercentbyModel$sellMonth = tolower(top10resellPercentbyModel$sellMonth)
-top10resellPercentbyModel$sellMonth = factor(top10resellPercentbyModel$sellMonth, 
-                                             levels = c("mar 2015", "apr 2015", "may 2015", "jun 2015", "jul 2015", "aug 2015", "sep 2015", "oct 2015", "nov 2015", "dec 2015", 
-                                                        "jan 2016", "feb 2016", "mar 2016", "apr 2016", "may 2016", "jun 2016", "jul 2016", "aug 2016", "sep 2016", "oct 2016", "nov 2016", "dec 2016", 
-                                                        "jan 2017", "feb 2017", "mar 2017", "apr 2017", "may 2017", "jun 2017", "jul 2017", "aug 2017", "sep 2017", "oct 2017", "nov 2017", "dec 2017"
-                                             ))
-
-
-#all together one one map
-g19= ggplot(data=top10resellPercentbyModel, aes(x=sellMonth, y=avgResellPercentage, group = model, color = model)) +
-  geom_line() + geom_point()
-g19
-
-#don't need facet_wrap for models, only 4 variables
-#g20= ggplot(data=top10resellPercentbyModel, aes(x=sellMonth, y=avgResellPercentage, group = 1, color = model)) +
-  #geom_line() + geom_point() + facet_wrap(~model)
-#g20
-
-#COLOR OVER TIME NO IMPORTANT INFO SO PROBABLY WON'T INCLUDE
-##########resellPercentage by color
-#top10resellPercentbyColor =  stockxjoin %>% group_by(color, sellMonth) %>% summarise(avgResellPercentage= mean(resellPercentage)) %>% arrange(desc(avgResellPercentage))
-#top10resellPercentbyColor$sellMonth = tolower(top10resellPercentbyColor$sellMonth)
-#top10resellPercentbyColor$sellMonth = factor(top10resellPercentbyColor$sellMonth, 
-#                                             levels = c("mar 2015", "apr 2015", "may 2015", "jun 2015", "jul 2015", "aug 2015", "sep 2015", "oct 2015", "nov 2015", "dec 2015", 
-#                                                        "jan 2016", "feb 2016", "mar 2016", "apr 2016", "may 2016", "jun 2016", "jul 2016", "aug 2016", "sep 2016", "oct 2016", "nov 2016", "dec 2016", 
-#                                                        "jan 2017", "feb 2017", "mar 2017", "apr 2017", "may 2017", "jun 2017", "jul 2017", "aug 2017", "sep 2017", "oct 2017", "nov 2017", "dec 2017"
-#                                             ))
-
-
-#all together one one map
-#g21= ggplot(data=top10resellPercentbyColor, aes(x=sellMonth, y=avgResellPercentage, group = color, color = color)) +
-  #geom_line() + geom_point()
-#g21
-#g22= ggplot(data=top10resellPercentbyColor, aes(x=sellMonth, y=avgResellPercentage, group = color, color = color)) +
-  #geom_line() + geom_point() + facet_wrap(~color)
-#g22
-
-
-#############units sold by model over time not as useful due to cutoff of data
-#top10UnitsSoldbyStyle =  stockxjoin %>% group_by(name, sellMonth) %>% summarise(totals= n()) %>% arrange(desc(totals))
-#top10UnitsSoldbyStyle = top10UnitsSoldbyStyle %>% filter(name %in% top10units$name) %>% arrange(desc(totals))
-#top10UnitsSoldbyStyle$sellMonth = tolower(top10UnitsSoldbyStyle$sellMonth)
-#top10UnitsSoldbyStyle$sellMonth = factor(top10UnitsSoldbyStyle$sellMonth, 
-#                                             levels = c("mar 2015", "apr 2015", "may 2015", "jun 2015", "jul 2015", "aug 2015", "sep 2015", "oct 2015", "nov 2015", "dec 2015", 
-#                                                        "jan 2016", "feb 2016", "mar 2016", "apr 2016", "may 2016", "jun 2016", "jul 2016", "aug 2016", "sep 2016", "oct 2016", "nov 2016", "dec 2016", 
-#                                                        "jan 2017", "feb 2017", "mar 2017", "apr 2017", "may 2017", "jun 2017", "jul 2017", "aug 2017", "sep 2017", "oct 2017", "nov 2017", "dec 2017"
-#                                             ))
-#
-
-#all together one one map
-#g23= ggplot(data=top10UnitsSoldbyStyle, aes(x=sellMonth, y=totals, group = name, color = name)) +
-#  geom_line() + geom_point()
-#g23
-
-#facet_wrap
-#g24= ggplot(data=top10UnitsSoldbyStyle, aes(x=sellMonth, y=totals, group = 1, color = name)) +
-#  geom_line() + geom_point() + facet_wrap(~name)
-#g24
-
-
-
-
-#more box plots?
-#not as important
-size, color, model, styles
-
-resellPrice
-
-#box plot by model
-g25= ggplot(data= stockxjoin %>% filter(model %in% c("750","350 V1","Powerphase", "350 V2")), aes(x=reorder(model, -resellPrice, FUN =median), y= resellPrice)) + geom_boxplot()
-g25
-
-#boxplot by color
-g26= ggplot(data= stockxjoin, aes(x=reorder(color,-resellPrice, FUN=median), y= resellPrice)) + geom_boxplot()
-g26
-
-#box plot by size
-g27= ggplot(data= stockxjoin, aes(x=reorder(as.factor(size), -resellPrice, FUN=median), y= resellPrice)) + geom_boxplot()
-g27
 
 #boxplot by top10 styles
-g28= ggplot(data= stockxjoin %>% filter(name %in% top10resellPercent$name), aes(x=reorder(name, -resellPrice, FUN =median), y= resellPrice)) + geom_boxplot()
+g28= ggplot(data= stockxjoin %>% filter(name %in% top10resellPercent$name), aes(x=reorder(name, -resellPrice, FUN =median), y= resellPrice)) + geom_boxplot()+
+  ggtitle("Resell Prices For Top 10 Styles") +
+  xlab("Top 10 Styles By Resell Price")+
+  ylab("Resell Prices ($)")+
+  theme(axis.text.x =element_text(angle=30, hjust=1), plot.title = element_text(hjust = 0.5))
 g28
-
-
-
-#individual styles change over time for all 31 styles if I do shiny!
-#yeezy price generator
-#time line graphs can do resll price and units sold! if I do shiny app.
-
-
-
-
 
 
